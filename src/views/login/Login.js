@@ -65,6 +65,9 @@ export default function Login({ navigation }) {
     const handleRegister = () => {
         navigation.navigate('Register');
     };
+    const handleForgetPassWord = () => {
+        navigation.navigate('ForgetPassWord');
+    };
 
     const toggleShowPassword = () => {
         setShowPassword(!showPassword);
@@ -80,7 +83,7 @@ export default function Login({ navigation }) {
                         <Image
                             resizeMode="contain"
                             style={styles.headerImg}
-                            source={require('../../image/logo1.png')} />
+                            source={require('../../image/LOGO.png')} />
                         <Text style={styles.title}>
                             <Text style={{ color: '#FFC0CB', fontSize: 50 }}>Đăng Nhập</Text>
                         </Text>
@@ -130,7 +133,14 @@ export default function Login({ navigation }) {
                             </View>
                         </TouchableOpacity>
 
-                        <Text style={styles.formLink}>Quên mật khẩu?</Text>
+                        <TouchableOpacity
+                            onPress={handleForgetPassWord}
+                            style={{ marginTop: 'auto' }}>
+                            <Text style={styles.formFooter}>
+
+                                <Text style={{ textDecorationLine: 'underline' }}>Quên mật khẩu</Text>
+                            </Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
             </KeyboardAwareScrollView>

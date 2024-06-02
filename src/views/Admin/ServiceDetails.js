@@ -9,7 +9,7 @@ const ServiceDetails = ({ route, navigation }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [isEditMode, setIsEditMode] = useState(true);
     const [updatedServiceName, setUpdatedServiceName] = useState(service.service);
-    const [updatedPrices, setUpdatedPrices] = useState(service.prices);
+    const [updatedPrices, setUpdatedPrices] = useState(service.prices.toString()); // Chuyển giá sang chuỗi để hiển thị
     const [imageUrl, setImageUrl] = useState(service.imageUrl);
     const [creatorName, setCreatorName] = useState('');
 
@@ -49,7 +49,7 @@ const ServiceDetails = ({ route, navigation }) => {
             querySnapshot.forEach(async documentSnapshot => {
                 await documentSnapshot.ref.update({
                     service: updatedServiceName.trim(),
-                    prices: updatedPrices.trim(),
+                    prices: parseFloat(updatedPrices), // Lưu giá nhập vào cơ sở dữ liệu
                     imageUrl: imageUrl,
                 });
             });
@@ -84,9 +84,7 @@ const ServiceDetails = ({ route, navigation }) => {
             Alert.alert('Thông báo', 'Xoá không thành công');
         }
     };
-    const formatPrice = (price) => {
-        return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + ' VND';
-    };
+
     return (
         <View style={styles.container}>
             <View style={styles.topContainer}>
@@ -125,7 +123,7 @@ const ServiceDetails = ({ route, navigation }) => {
                     <View style={styles.inputContainer}>
                         <TextInput
                             style={styles.input}
-                            value={formatPrice(updatedPrices)}
+                            value={updatedPrices}
                             onChangeText={setUpdatedPrices}
                             placeholder="Giá"
                             keyboardType="numeric"
@@ -174,6 +172,7 @@ const styles = StyleSheet.create({
         flex: 1,
         marginTop: 10,
         padding: 20,
+        backgroundColor: 'white',
     },
     topContainer: {
         flexDirection: 'row',
@@ -200,7 +199,8 @@ const styles = StyleSheet.create({
     label: {
         fontWeight: 'bold',
         marginBottom: 5,
-        width: 100, // Set a fixed width for the labels
+        width: 100,
+        color: 'black',
     },
     inputContainer: {
         flex: 1,
@@ -210,6 +210,7 @@ const styles = StyleSheet.create({
     },
     input: {
         padding: 10,
+        color: 'black',
     },
     image: {
         width: '100%',
@@ -247,3 +248,4 @@ const styles = StyleSheet.create({
 });
 
 export default ServiceDetails;
+

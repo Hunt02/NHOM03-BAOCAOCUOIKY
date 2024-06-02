@@ -1,58 +1,33 @@
 import React from 'react';
-import {
-    View,
-    TouchableOpacity,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput
-} from 'react-native';
+import { View, TouchableOpacity, ScrollView, StyleSheet, Text } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { createStackNavigator } from '@react-navigation/stack';
+import UserList from './UserList';
 
-const Settings = ({ navigation }) => {
+const Stack = createStackNavigator();
+
+const SettingsScreen = ({ navigation }) => {
     return (
         <ScrollView style={styles.container}>
-            <Text style={styles.title}>
-                Cài đặt
-            </Text>
-            <TextInput
-                style={styles.searchBar}
-                placeholder="Tìm kiếm ..."
-            />
+            <Text style={styles.title}>Cài đặt</Text>
 
             <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                     <Text style={styles.text}>Common</Text>
                 </View>
                 <View style={styles.sectionItem}>
-                    <Icon
-                        name='globe'
-                        style={styles.icon}
-                        size={20} color={'black'}
-                    />
+                    <Icon name='globe' style={styles.icon} size={20} color={'black'} />
                     <Text style={styles.text}>Ngôn ngữ</Text>
                     <View style={{ flex: 1 }} />
                     <Text style={styles.text}>English</Text>
-                    <Icon
-                        name='chevron-right'
-                        style={styles.chevron}
-                        size={20} color={'black'}
-                    />
+                    <Icon name='chevron-right' style={styles.chevron} size={20} color={'black'} />
                 </View>
                 <View style={styles.sectionItem}>
-                    <Icon
-                        name='cloud'
-                        style={styles.icon}
-                        size={16} color={'black'}
-                    />
+                    <Icon name='cloud' style={styles.icon} size={16} color={'black'} />
                     <Text style={styles.text}>Môi trường </Text>
                     <View style={{ flex: 1 }} />
                     <Text style={styles.text}>Production</Text>
-                    <Icon
-                        name='chevron-right'
-                        style={styles.chevron}
-                        size={20} color={'black'}
-                    />
+                    <Icon name='chevron-right' style={styles.chevron} size={20} color={'black'} />
                 </View>
             </View>
 
@@ -60,47 +35,21 @@ const Settings = ({ navigation }) => {
                 <View style={styles.sectionHeader}>
                     <Text style={styles.text}>Account</Text>
                 </View>
-                <View style={styles.sectionItem}>
-                    <Icon
-                        name='phone'
-                        style={styles.icon}
-                        size={16} color={'black'}
-                    />
-                    <Text style={styles.text}>Số điện thoại</Text>
+                <TouchableOpacity
+                    style={styles.sectionItem}
+                    onPress={() => navigation.navigate('UserList')}
+                >
+                    <Icon name='phone' style={styles.icon} size={16} color={'black'} />
+                    <Text style={styles.text}>Danh sách tài khoản</Text>
                     <View style={{ flex: 1 }} />
-                    <Icon
-                        name='chevron-right'
-                        style={styles.chevron}
-                        size={20} color={'black'}
-                    />
-                </View>
-                <View style={styles.sectionItem}>
-                    <Icon
-                        name='envelope'
-                        style={styles.icon}
-                        size={16} color={'black'}
-                    />
-                    <Text style={styles.text}>Email</Text>
-                    <View style={{ flex: 1 }} />
-                    <Icon
-                        name='chevron-right'
-                        style={styles.chevron}
-                        size={20} color={'black'}
-                    />
-                </View>
+                    <Icon name='chevron-right' style={styles.chevron} size={20} color={'black'} />
+                </TouchableOpacity>
+
                 <TouchableOpacity style={styles.sectionItem} onPress={() => navigation.navigate('Login')}>
-                    <Icon
-                        name='sign-out'
-                        style={styles.icon}
-                        size={20} color={'black'}
-                    />
+                    <Icon name='sign-out' style={styles.icon} size={20} color={'black'} />
                     <Text style={styles.text}>Đăng xuất</Text>
                     <View style={{ flex: 1 }} />
-                    <Icon
-                        name='chevron-right'
-                        style={styles.chevron}
-                        size={20} color={'black'}
-                    />
+                    <Icon name='chevron-right' style={styles.chevron} size={20} color={'black'} />
                 </TouchableOpacity>
             </View>
 
@@ -108,37 +57,25 @@ const Settings = ({ navigation }) => {
                 <View style={styles.sectionHeader}>
                     <Text style={styles.text}>Security</Text>
                 </View>
+
                 <View style={styles.sectionItem}>
-                    <Icon
-                        name='door-closed'
-                        style={styles.icon}
-                        size={16} color={'black'}
-                    />
-                    <Text style={styles.text}>Lock app in background</Text>
-                    <View style={{ flex: 1 }} />
-                </View>
-                <View style={styles.sectionItem}>
-                    <Icon
-                        name='fingerprint'
-                        style={styles.icon}
-                        size={16} color={'black'}
-                    />
-                    <Text style={styles.text}>Use fingerprint</Text>
-                    <View style={{ flex: 1 }} />
-                </View>
-                <View style={styles.sectionItem}>
-                    <Icon
-                        name='lock'
-                        style={styles.icon}
-                        size={20} color={'black'}
-                    />
+                    <Icon name='lock' style={styles.icon} size={20} color={'black'} />
                     <Text style={styles.text}>Change password</Text>
                     <View style={{ flex: 1 }} />
                 </View>
             </View>
-
-
         </ScrollView>
+    );
+};
+
+const Settings = ({ route }) => {
+    return (
+        <Stack.Navigator
+            initialRouteName="SettingsScreen"
+            screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="SettingsScreen" component={SettingsScreen} initialParams={route.params} />
+            <Stack.Screen name="UserList" component={UserList} options={{ title: 'User List' }} />
+        </Stack.Navigator>
     );
 };
 
@@ -153,14 +90,6 @@ const styles = StyleSheet.create({
         color: 'black',
         fontSize: 30,
         marginBottom: 10,
-    },
-    searchBar: {
-        height: 40,
-        borderColor: '#ccc',
-        borderWidth: 1,
-        borderRadius: 30,
-        marginBottom: 15,
-        paddingLeft: 10,
     },
     section: {
         marginBottom: 20,

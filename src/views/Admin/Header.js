@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth'; // Import Firebase Authentication
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 const Header = ({ navigation }) => {
@@ -9,11 +10,14 @@ const Header = ({ navigation }) => {
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const userQuerySnapshot = await firestore().collection('user').get();
-                userQuerySnapshot.forEach(doc => {
-                    const user = doc.data();
-                    setUsername(user.name);
-                });
+                const currentUser = auth().currentUser; // Get the current user
+                if (currentUser) {
+                    const userDoc = await firestore().collection('user').doc(currentUser.uid).get();
+                    if (userDoc.exists) {
+                        const user = userDoc.data();
+                        setUsername(user.name);
+                    }
+                }
             } catch (error) {
                 console.error('Error fetching user data:', error);
             }
@@ -40,7 +44,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         paddingVertical: 10,
         paddingHorizontal: 20,
-        backgroundColor: '#00bfff',
+        backgroundColor: '#f5f5f5',
         alignItems: 'center',
     },
     username: {

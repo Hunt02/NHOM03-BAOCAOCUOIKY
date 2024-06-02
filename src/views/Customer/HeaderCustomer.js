@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         paddingVertical: 10,
         paddingHorizontal: 20,
-        backgroundColor: '#00bfff',
+        backgroundColor: '#f5f5f5',
         alignItems: 'center',
     },
     username: {

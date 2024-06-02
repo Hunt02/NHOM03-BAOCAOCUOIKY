@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, ActivityIndicator, SafeAreaView, Image } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
-import auth from '@react-native-firebase/auth'; // Import Firebase Authentication
+import auth from '@react-native-firebase/auth';
+import storage from '@react-native-firebase/storage';
+import { launchImageLibrary } from 'react-native-image-picker'; // Import image picker
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 export default function Register({ navigation }) {
@@ -12,6 +14,8 @@ export default function Register({ navigation }) {
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showResetPassword, setShowResetPassword] = useState(false);
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [avatar, setAvatar] = useState(null); // State for storing the avatar
 
     const isValidEmail = (email) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -33,6 +37,10 @@ export default function Register({ navigation }) {
             Alert.alert('Mật khẩu và mật khẩu nhập lại không khớp');
             return;
         }
+        if (phoneNumber.trim() === '') {
+            Alert.alert('Thông báo', 'Vui lòng nhập số điện thoại của bạn');
+            return;
+        }
 
         setLoading(true);
 
@@ -43,6 +51,14 @@ export default function Register({ navigation }) {
             // Get the user id
             const { uid } = userCredential.user;
 
+            // Upload avatar to Firebase Storage
+            let avatarUrl = '';
+            if (avatar) {
+                const avatarRef = storage().ref(`avatars/${uid}.jpg`);
+                await avatarRef.putFile(avatar);
+                avatarUrl = await avatarRef.getDownloadURL();
+            }
+
             // Add user details to Firestore
             await firestore()
                 .collection('user')
@@ -50,7 +66,8 @@ export default function Register({ navigation }) {
                 .set({
                     email: email,
                     name: name,
-                    password: password,
+                    phoneNumber: phoneNumber,
+                    avatar: avatarUrl,
                     role: 'user'
                 });
 
@@ -63,15 +80,28 @@ export default function Register({ navigation }) {
             setLoading(false);
         }
     };
+
+    const selectAvatar = () => {
+        launchImageLibrary({ mediaType: 'photo' }, (response) => {
+            if (response.didCancel) {
+                console.log('User cancelled image picker');
+            } else if (response.errorMessage) {
+                console.log('ImagePicker Error: ', response.errorMessage);
+            } else {
+                setAvatar(response.assets[0].uri);
+            }
+        });
+    };
+
     const toggleShowPassword = () => {
         setShowPassword(!showPassword);
     };
     const toggleResetShowPassword = () => {
         setShowResetPassword(!showResetPassword);
     };
+
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-
             <KeyboardAwareScrollView
                 contentContainerStyle={{ flexGrow: 1 }}
                 keyboardShouldPersistTaps="handled">
@@ -80,12 +110,11 @@ export default function Register({ navigation }) {
                         <Image
                             resizeMode="contain"
                             style={styles.headerImg}
-                            source={require('../../image/logo1.png')} />
+                            source={require('../../image/LOGO.png')} />
                         <Text style={styles.title}>
                             <Text style={{ color: '#FFC0CB', fontSize: 50 }}>Đăng Ký</Text>
                         </Text>
                     </View>
-
                     <View style={styles.form}>
                         <View style={styles.input}>
                             <Text style={styles.inputLabel}>Địa chỉ email</Text>
@@ -100,7 +129,6 @@ export default function Register({ navigation }) {
                                 style={styles.inputControl}
                                 value={email} />
                         </View>
-
                         <View style={styles.input}>
                             <Text style={styles.inputLabel}>Mật khẩu</Text>
                             <TextInput
@@ -116,7 +144,6 @@ export default function Register({ navigation }) {
                                 <Text style={styles.eyeIcon}>{showPassword ? '👁️' : '👁️'}</Text>
                             </TouchableOpacity>
                         </View>
-
                         <View style={styles.input}>
                             <Text style={styles.inputLabel}>Điền lại mật khẩu</Text>
                             <TextInput
@@ -132,7 +159,6 @@ export default function Register({ navigation }) {
                                 <Text style={styles.eyeIcon}>{showResetPassword ? '👁️' : '👁️'}</Text>
                             </TouchableOpacity>
                         </View>
-
                         <View style={styles.input}>
                             <Text style={styles.inputLabel}>Họ và tên</Text>
                             <TextInput
@@ -145,7 +171,28 @@ export default function Register({ navigation }) {
                                 style={styles.inputControl}
                                 value={name} />
                         </View>
+                        <View style={styles.input}>
+                            <Text style={styles.inputLabel}>Số Điện Thoại</Text>
+                            <TextInput
+                                autoCapitalize="none"
+                                autoCorrect={false}
+                                clearButtonMode="while-editing"
+                                onChangeText={setPhoneNumber}
+                                placeholder="Số điện thoại của bạn"
+                                placeholderTextColor="#6b7280"
+                                style={styles.inputControl}
+                                keyboardType="phone-pad"
+                                value={phoneNumber} />
+                        </View>
+                        <View style={styles.input}>
 
+                            <TouchableOpacity onPress={selectAvatar} style={styles.avatarButton}>
+                                <Text style={styles.avatarButtonText}>Chọn ảnh</Text>
+                            </TouchableOpacity>
+                            {avatar && (
+                                <Image source={{ uri: avatar }} style={styles.avatarPreview} />
+                            )}
+                        </View>
                         <TouchableOpacity onPress={handleRegister} disabled={loading}>
                             <View style={styles.btn}>
                                 {loading ? (
@@ -155,11 +202,8 @@ export default function Register({ navigation }) {
                                 )}
                             </View>
                         </TouchableOpacity>
-
                         <TouchableOpacity onPress={() => navigation.goBack()} disabled={loading}>
-
-                            <Text style={{ color: 'blue', textAlign: 'center', marginTop: 5, fontSize: 20 }}>Quay lại</Text>
-
+                            <Text style={{ color: 'black', textAlign: 'center', marginTop: 5, fontSize: 20 }}>Quay lại</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -181,7 +225,6 @@ const styles = StyleSheet.create({
         color: '#FFC0CB',
         marginBottom: 6,
     },
-    /** Header */
     header: {
         alignItems: 'center',
         justifyContent: 'center',
@@ -193,7 +236,6 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
         marginTop: -30
     },
-    /** Form */
     form: {
         marginBottom: 24,
         paddingHorizontal: 24,
@@ -212,9 +254,12 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         letterSpacing: 0.15,
     },
-    /** Input */
     input: {
         marginBottom: 16,
+    },
+    inputimage: {
+        marginBottom: 16,
+        backgroundColor: 'white',
     },
     inputLabel: {
         fontSize: 17,
@@ -245,7 +290,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         borderWidth: 1,
         backgroundColor: 'black',
-
     },
     btnText: {
         fontSize: 18,
@@ -257,7 +301,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         position: 'relative',
-
     },
     passwordToggle: {
         position: 'absolute',
@@ -268,5 +311,23 @@ const styles = StyleSheet.create({
     eyeIcon: {
         fontSize: 22,
         color: '#6b7280',
+    },
+    avatarButton: {
+        backgroundColor: 'white',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
+    },
+    avatarButtonText: {
+        color: 'black',
+        fontWeight: '600',
+        backgroundColor: 'white',
+    },
+    avatarPreview: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        marginTop: 10,
+        alignSelf: 'center',
     },
 });

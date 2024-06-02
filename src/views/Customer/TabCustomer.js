@@ -17,7 +17,7 @@ const TabCustomer = ({ navigation, route }) => {
     return (
         <Tab.Navigator screenOptions={{ headerShown: false }}>
             <Tab.Screen
-                name={"HomeCustomer"}
+                name={"Trang chủ"}
                 component={HomeCustomer}
                 options={{
                     tabBarIcon: ({ color, size }) => (
@@ -27,7 +27,7 @@ const TabCustomer = ({ navigation, route }) => {
                 }}
             />
             <Tab.Screen
-                name="AppoitmentCustomer"
+                name="Đơn hàng"
                 component={AppoitmentCustomer}
                 options={{
                     tabBarIcon: ({ color, size }) => (
@@ -36,7 +36,7 @@ const TabCustomer = ({ navigation, route }) => {
                 }}
             />
             <Tab.Screen
-                name="SettingsCustomer"
+                name="Cài đặt"
                 component={SettingsCustomer}
                 options={{
                     tabBarIcon: ({ color, size }) => (
@@ -50,19 +50,19 @@ const TabCustomer = ({ navigation, route }) => {
 
 const HomeStackScreen = () => (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="HomeCustomer" component={HomeCustomer} />
+        <Stack.Screen name="Trang chủ" component={HomeCustomer} />
     </Stack.Navigator>
 );
 
 const TransactionStackScreen = () => (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="AppoitmentCustomer" component={AppoitmentCustomer} />
+        <Stack.Screen name="Đơn hàng" component={AppoitmentCustomer} />
     </Stack.Navigator>
 );
 
 const CustomerStackScreen = () => (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="SettingsCustomer" component={SettingsCustomer} />
+        <Stack.Screen name="Cài đặt" component={SettingsCustomer} />
     </Stack.Navigator>
 );
 

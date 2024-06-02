@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import firestore from '@react-native-firebase/firestore';
@@ -16,14 +16,13 @@ const ProfileCustomer = () => {
                 const user = auth().currentUser;
 
                 if (user) {
-                    const userQuerySnapshot = await firestore()
+                    const userDoc = await firestore()
                         .collection('user')
-                        .where('email', '==', user.email)
+                        .doc(user.uid)
                         .get();
 
-                    if (!userQuerySnapshot.empty) {
-                        const userData = userQuerySnapshot.docs[0].data();
-                        setUserData(userData);
+                    if (userDoc.exists) {
+                        setUserData(userDoc.data());
                     }
                 }
             } catch (error) {
@@ -42,18 +41,35 @@ const ProfileCustomer = () => {
                 <Icon name="arrow-left" size={25} color="black" />
             </TouchableOpacity>
 
-            <View style={styles.content}>
+            <ScrollView contentContainerStyle={styles.content}>
+                <Text style={styles.title}>Thông tin tài khoản</Text>
                 {loading ? (
                     <ActivityIndicator size="large" color="#0000ff" />
                 ) : (
                     <>
-                        <Text style={styles.title}>Thông tin tài khoản</Text>
-                        <Text style={styles.text}>Email: {userData?.email}</Text>
-                        <Text style={styles.text}>Quyền: {userData?.role}</Text>
-                        <Text style={styles.text}>User: {userData?.name}</Text>
+                        {userData?.avatar && (
+                            <Image source={{ uri: userData.avatar }} style={styles.avatar} />
+                        )}
+
+                        <View style={styles.infoContainer}>
+                            <Text style={styles.label}>Email:</Text>
+                            <Text style={styles.text}>{userData?.email}</Text>
+                        </View>
+                        <View style={styles.infoContainer}>
+                            <Text style={styles.label}>Quyền:</Text>
+                            <Text style={styles.text}>{userData?.role}</Text>
+                        </View>
+                        <View style={styles.infoContainer}>
+                            <Text style={styles.label}>Họ và tên:</Text>
+                            <Text style={styles.text}>{userData?.name}</Text>
+                        </View>
+                        <View style={styles.infoContainer}>
+                            <Text style={styles.label}>Số điện thoại:</Text>
+                            <Text style={styles.text}>{userData?.phoneNumber}</Text>
+                        </View>
                     </>
                 )}
-            </View>
+            </ScrollView>
         </View>
     );
 }
@@ -61,7 +77,7 @@ const ProfileCustomer = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: 'white',
+        backgroundColor: '#f0f0f0',
     },
     iconContainer: {
         position: 'absolute',
@@ -70,18 +86,39 @@ const styles = StyleSheet.create({
         zIndex: 1,
     },
     content: {
-        flex: 1,
-        justifyContent: 'center',
+        paddingTop: 60,
+        paddingBottom: 20,
+        paddingHorizontal: 20,
         alignItems: 'center',
     },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
+    avatar: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
         marginBottom: 20,
+        borderWidth: 2,
+        borderColor: '#ccc',
+    },
+    title: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        marginBottom: 30,
+        color: '#333',
+    },
+    infoContainer: {
+        flexDirection: 'row',
+        marginBottom: 15,
+        width: '100%',
+        justifyContent: 'space-between',
+    },
+    label: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#555',
     },
     text: {
         fontSize: 18,
-        marginBottom: 10,
+        color: '#555',
     },
 });
 

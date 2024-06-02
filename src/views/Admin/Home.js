@@ -72,7 +72,7 @@ const HomeScreen = ({ navigation }) => {
             <View style={styles.contentContainer}>
                 <View style={styles.logoContainer}>
                     <Image
-                        source={require('../../image/logo1.png')}
+                        source={require('../../image/LOGO.png')}
                         style={{ width: 200, height: 200 }}
                         resizeMode="contain"
                     />
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     card: {
-        backgroundColor: '#87cefa',
+        backgroundColor: '#f5f5f5s',
         borderRadius: 30,
         padding: 15,
         marginBottom: 15,
@@ -131,13 +131,16 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 3,
+        color: 'black',
     },
     itemContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        color: 'black',
     },
     itemText: {
         fontSize: 16,
+        color: 'black',
     },
     logoContainer: {
         justifyContent: 'center',
@@ -147,14 +150,16 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginLeft: 20,
+        color: 'black',
     },
     headerText: {
         flex: 1,
         fontSize: 18,
         fontWeight: 'bold',
+        color: 'black',
     },
     addButton: {
-        backgroundColor: 'pink',
+        backgroundColor: 'black',
         borderRadius: 50,
         width: 35,
         height: 35,
@@ -168,6 +173,7 @@ const styles = StyleSheet.create({
     },
     list: {
         marginTop: 20,
+        color: 'black',
     },
 });
 

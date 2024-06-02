@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import firestore from '@react-native-firebase/firestore';
@@ -16,14 +16,13 @@ const Profile = () => {
                 const user = auth().currentUser;
 
                 if (user) {
-                    const userQuerySnapshot = await firestore()
+                    const userDoc = await firestore()
                         .collection('user')
-                        .where('email', '==', user.email)
+                        .doc(user.uid)
                         .get();
 
-                    if (!userQuerySnapshot.empty) {
-                        const userData = userQuerySnapshot.docs[0].data();
-                        setUserData(userData);
+                    if (userDoc.exists) {
+                        setUserData(userDoc.data());
                     }
                 }
             } catch (error) {
@@ -43,14 +42,18 @@ const Profile = () => {
             </TouchableOpacity>
 
             <View style={styles.content}>
+                <Text style={styles.title}>Thông tin tài khoản</Text>
                 {loading ? (
                     <ActivityIndicator size="large" color="#0000ff" />
                 ) : (
                     <>
-                        <Text style={styles.title}>Thông tin tài khoản</Text>
+                        {userData?.avatar && (
+                            <Image source={{ uri: userData.avatar }} style={styles.avatar} />
+                        )}
+
                         <Text style={styles.text}>Email: {userData?.email}</Text>
                         <Text style={styles.text}>Quyền: {userData?.role}</Text>
-                        <Text style={styles.text}>User: {userData?.name}</Text>
+                        <Text style={styles.text}>Họ và tên: {userData?.name}</Text>
                     </>
                 )}
             </View>
@@ -73,6 +76,13 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        paddingHorizontal: 20,
+    },
+    avatar: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        marginBottom: 20,
     },
     title: {
         fontSize: 24,

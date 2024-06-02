@@ -9,6 +9,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 const AddNewServices = ({ navigation }) => {
     const [service, setService] = useState('');
     const [prices, setPrices] = useState('');
+    const [description, setDescription] = useState('');
     const [imageUri, setImageUri] = useState(null);
     const [creatorName, setCreatorName] = useState('');
 
@@ -47,7 +48,7 @@ const AddNewServices = ({ navigation }) => {
     };
 
     const addService = async () => {
-        if (service.trim() === '' || prices.trim() === '') {
+        if (service.trim() === '' || prices.trim() === '' || description.trim() === '') {
             Alert.alert('Error', 'Please fill in all fields');
             return;
         }
@@ -69,11 +70,11 @@ const AddNewServices = ({ navigation }) => {
                 .add({
                     service: service.trim(),
                     prices: prices.trim(),
+                    description: description.trim(),
                     imageUrl,
-                    creatorName,  // Add the creator's name here
+                    creatorName,
                 });
 
-            // Show success message and navigate back to the Home screen
             Alert.alert('Success', 'Service added successfully');
             navigation.navigate('Home');
         } catch (error) {
@@ -84,18 +85,16 @@ const AddNewServices = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            {/* Phần trên chứa nút back */}
             <View style={styles.topContainer}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <Icon name="arrow-left" size={24} color="black" />
                 </TouchableOpacity>
             </View>
 
-            {/* Phần dưới chứa nội dung */}
             <View style={styles.bottomContainer}>
-                <Text style={{ fontWeight: 'bold' }}>Tên dịch vụ*</Text>
+                <Text style={{ fontWeight: 'bold' }}>Tên sản phẩm*</Text>
                 <TextInput
-                    placeholder="Điền tên dịch vụ"
+                    placeholder="Điền tên sản phẩm"
                     onChangeText={setService}
                     value={service}
                     style={styles.input}
@@ -110,10 +109,17 @@ const AddNewServices = ({ navigation }) => {
                     keyboardType="number-pad"
                 />
 
+                <Text style={{ fontWeight: 'bold' }}>Mô tả*</Text>
+                <TextInput
+                    placeholder="Nhập mô tả sản phẩm"
+                    onChangeText={setDescription}
+                    value={description}
+                    style={styles.input}
+                />
+
                 <TouchableOpacity onPress={pickImage} >
                     <Text style={{ fontSize: 15, color: 'blue', textAlign: 'center' }}>Chọn ảnh</Text>
                 </TouchableOpacity>
-
 
                 {imageUri && (
                     <Image source={{ uri: imageUri }} style={styles.imagePreview} />
@@ -164,7 +170,6 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         height: 45,
         backgroundColor: 'black',
-
         marginTop: 10,
     },
     buttonsContainer: {
