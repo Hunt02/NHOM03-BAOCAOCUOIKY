@@ -236,6 +236,7 @@ const styles = StyleSheet.create({
     },
     itemText: {
         fontSize: 16,
+        marginRight: 'auto',
     },
     header: {
         flexDirection: 'row',

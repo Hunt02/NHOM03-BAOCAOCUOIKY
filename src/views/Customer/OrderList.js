@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, Image, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
@@ -69,10 +69,9 @@ const AppointmentCustomer = () => {
     return (
         <View style={styles.container}>
             <HeaderCustomer />
-            <View style={styles.content}>
+            <ScrollView contentContainerStyle={styles.content}>
                 <Text style={styles.title}>Các đơn hàng của bạn</Text>
                 <FlatList
-                    style={styles.list}
                     data={bookings}
                     keyExtractor={(item) => item.id}
                     renderItem={({ item, index }) => (
@@ -95,7 +94,7 @@ const AppointmentCustomer = () => {
                         </View>
                     )}
                 />
-            </View>
+            </ScrollView>
         </View>
     );
 };

@@ -53,10 +53,10 @@ const Customer = () => {
             setFilteredBookings(groupedBookings);
         }
     }, [searchText, groupedBookings]);
+
     const formatPrice = (price) => {
         return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + ' VND';
     };
-
 
     return (
         <View style={styles.container}>
@@ -87,6 +87,7 @@ const Customer = () => {
                                                 <Text style={styles.bookingText}>Giá: {formatPrice(booking.prices)}</Text>
                                                 <Text style={styles.bookingText}>Số lượng: {booking.quantity}</Text>
                                                 <Text style={styles.bookingText}>Tổng tiền: {formatPrice(booking.totalPrice)} VND</Text>
+                                                <Text style={styles.bookingText}>Phương thức thanh toán: {booking.paymentMethod}</Text>
                                             </View>
                                         </View>
                                     </View>

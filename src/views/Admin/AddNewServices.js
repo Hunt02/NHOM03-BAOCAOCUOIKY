@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ActivityIndicator } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import auth from '@react-native-firebase/auth';
@@ -12,6 +12,7 @@ const AddNewServices = ({ navigation }) => {
     const [description, setDescription] = useState('');
     const [imageUri, setImageUri] = useState(null);
     const [creatorName, setCreatorName] = useState('');
+    const [loading, setLoading] = useState(false); // Thêm trạng thái loading
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -49,9 +50,13 @@ const AddNewServices = ({ navigation }) => {
 
     const addService = async () => {
         if (service.trim() === '' || prices.trim() === '' || description.trim() === '') {
-            Alert.alert('Error', 'Please fill in all fields');
+            Alert.alert('Thông báo', 'Vui lòng điền đầy đủ thông tin');
             return;
         }
+
+        if (loading) return; // Kiểm tra nếu đang xử lý thì không cho người dùng bấm nút
+
+        setLoading(true); // Bắt đầu quá trình xử lý
 
         let imageUrl = '';
         if (imageUri) {
@@ -59,7 +64,8 @@ const AddNewServices = ({ navigation }) => {
                 imageUrl = await uploadImage(imageUri);
             } catch (error) {
                 console.error('Error uploading image:', error);
-                Alert.alert('Error', 'An error occurred while uploading the image');
+                Alert.alert('Thông báo', 'Đã có lỗi xảy ra khi tải ảnh');
+                setLoading(false); // Dừng quá trình xử lý
                 return;
             }
         }
@@ -75,11 +81,13 @@ const AddNewServices = ({ navigation }) => {
                     creatorName,
                 });
 
-            Alert.alert('Success', 'Service added successfully');
+            Alert.alert('Thông báo', 'Thêm sản phẩm thành công');
             navigation.navigate('Home');
         } catch (error) {
             console.error('Error adding service:', error);
             Alert.alert('Error', 'An error occurred while adding the service');
+        } finally {
+            setLoading(false); // Dừng quá trình xử lý sau khi hoàn thành
         }
     };
 
@@ -126,8 +134,12 @@ const AddNewServices = ({ navigation }) => {
                 )}
 
                 <View style={styles.buttonsContainer}>
-                    <TouchableOpacity onPress={addService} style={styles.button}>
-                        <Text style={{ fontSize: 20, color: 'white' }}>Thêm</Text>
+                    <TouchableOpacity onPress={addService} style={[styles.button, loading && styles.disabledButton]} disabled={loading}>
+                        {loading ? (
+                            <ActivityIndicator color="white" /> // Hiển thị indicator khi đang xử lý
+                        ) : (
+                            <Text style={{ fontSize: 20, color: 'white' }}>Thêm</Text>
+                        )}
                     </TouchableOpacity>
                 </View>
             </View>
@@ -171,6 +183,9 @@ const styles = StyleSheet.create({
         height: 45,
         backgroundColor: 'black',
         marginTop: 10,
+    },
+    disabledButton: {
+        opacity: 0.5, // Điều chỉnh độ mờ của nút khi bị vô hiệu hóa
     },
     buttonsContainer: {
         marginTop: 10,

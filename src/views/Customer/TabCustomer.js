@@ -2,7 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import HomeCustomer from './HomeCustomer';
-import AppoitmentCustomer from './AppoitmentCustomer';
+import OrderList from './OrderList';
 import SettingsCustomer from './SettingsCustomer';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Text } from 'react-native';
@@ -28,7 +28,7 @@ const TabCustomer = ({ navigation, route }) => {
             />
             <Tab.Screen
                 name="Đơn hàng"
-                component={AppoitmentCustomer}
+                component={OrderList}
                 options={{
                     tabBarIcon: ({ color, size }) => (
                         <Icon name="exchange" color={color} size={size} />
@@ -56,7 +56,7 @@ const HomeStackScreen = () => (
 
 const TransactionStackScreen = () => (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Đơn hàng" component={AppoitmentCustomer} />
+        <Stack.Screen name="Đơn hàng" component={OrderList} />
     </Stack.Navigator>
 );
 

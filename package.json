@@ -39,6 +39,7 @@
     "react-native-image-picker": "^7.1.2",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-modal-datetime-picker": "^17.1.0",
+    "react-native-momosdk": "^1.4.3",
     "react-native-paper": "^5.12.3",
     "react-native-picker-select": "^9.1.3",
     "react-native-ratings": "^8.1.0",

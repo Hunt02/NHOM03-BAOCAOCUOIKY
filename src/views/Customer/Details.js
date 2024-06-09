@@ -119,9 +119,7 @@ const DetailsScreen = ({ route, navigation }) => {
         <View style={styles.container}>
             <View style={styles.imageContainer}>
                 <Image source={{ uri: service.imageUrl }} style={styles.image} />
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Icon name="arrow-left" size={24} color="black" />
-                </TouchableOpacity>
+
                 <TouchableOpacity style={styles.cartButton} onPress={() => navigation.navigate('Cart')}>
                     <Icon name="shopping-cart" size={30} color="black" />
                     {cartQuantity > 0 && <Text style={styles.cartQuantity}>{cartQuantity}</Text>}
@@ -238,17 +236,7 @@ const styles = StyleSheet.create({
         position: 'relative',
         width: '100%',
     },
-    backButton: {
-        position: 'absolute',
-        top: 10,
-        left: 10,
-        backgroundColor: 'rgba(255, 255, 255, 0.5)',
-        borderRadius: 20,
-        width: 40,
-        height: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
+
     cartButton: {
         position: 'absolute',
         top: 10,
@@ -263,7 +251,7 @@ const styles = StyleSheet.create({
     cartQuantity: {
         position: 'absolute',
         top: -8,
-        right: -8,
+        right: -20,
         backgroundColor: 'red',
         borderRadius: 10,
         width: 20,
