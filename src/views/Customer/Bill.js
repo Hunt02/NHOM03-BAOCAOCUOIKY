@@ -4,14 +4,15 @@ import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
-import PaymentWebView from './PaymentWebView';
 import { createStackNavigator } from '@react-navigation/stack';
+import PaymentWebView from './PaymentWebView';
 
 const BillVnpay = ({ route }) => {
     const navigation = useNavigation();
     const { serviceName, prices, imageUrl, quantity } = route.params;
     const [creatorName, setCreatorName] = useState('');
-    const [paymentMethod, setPaymentMethod] = useState('cod'); // 'cod' for Cash on Delivery, 'card' for Card Payment
+    const [paymentMethod, setPaymentMethod] = useState('cod'); // 'cod' for Cash on Delivery, 'online' for Online Payment
+    const [bookingSaved, setBookingSaved] = useState(false); // Track if booking has been saved
 
     const totalPrice = prices * quantity;
 
@@ -28,7 +29,9 @@ const BillVnpay = ({ route }) => {
         fetchUserData();
     }, []);
 
-    const handleSaveBooking = async () => {
+    const handleSaveBooking = async (isOnlinePayment = false) => {
+        if (bookingSaved) return; // Prevent multiple saves
+
         try {
             const currentUser = auth().currentUser;
             if (currentUser) {
@@ -43,10 +46,15 @@ const BillVnpay = ({ route }) => {
                     quantity,
                     totalPrice,
                     creatorName,
-                    paymentMethod,
+                    paymentMethod: isOnlinePayment ? 'online' : 'cod',
                 });
-                Alert.alert('Thông báo', 'Đặt hàng thành công');
-                navigation.navigate('Trang chủ');
+
+                setBookingSaved(true);
+
+                if (!isOnlinePayment) {
+                    Alert.alert('Thông báo', 'Đặt hàng thành công');
+                    navigation.navigate('Details'); // Change this to the appropriate screen name
+                }
             } else {
                 Alert.alert('Lỗi', 'Người dùng chưa đăng nhập');
             }
@@ -65,8 +73,8 @@ const BillVnpay = ({ route }) => {
             'Vui lòng chọn phương thức thanh toán',
             [
                 {
-                    text: 'VNPay',
-                    onPress: handleVnPayPayment,
+                    text: 'ZaloPay',
+                    onPress: handleZaloPayPayment,
                 },
                 {
                     text: 'PayPal',
@@ -82,7 +90,7 @@ const BillVnpay = ({ route }) => {
     };
 
     const createPaymentUrl = async (totalPrice) => {
-        const apiUrl = 'http://172.20.10.6:3000/create-payment';
+        const apiUrl = 'http://172.20.10.6:3000/payment'; // Update this to your server IP and port
         const requestData = {
             amount: totalPrice,
         };
@@ -101,22 +109,24 @@ const BillVnpay = ({ route }) => {
             }
 
             const responseData = await response.json();
-            return responseData.paymentUrl;
+            return responseData.order_url;
         } catch (error) {
             console.error('Error occurred while creating payment URL:', error);
             Alert.alert('Lỗi', 'Không thể tạo URL thanh toán');
         }
     };
 
-    const handleVnPayPayment = async () => {
+    const handleZaloPayPayment = async () => {
         try {
             const paymentUrl = await createPaymentUrl(totalPrice);
             if (paymentUrl) {
+                setPaymentMethod('online');
+                await handleSaveBooking(true);
                 navigation.navigate('PaymentWebView', { url: paymentUrl });
             }
         } catch (error) {
-            console.error('Error occurred while processing VNPay payment:', error);
-            Alert.alert('Lỗi', 'Không thể thực hiện thanh toán VNPay');
+            console.error('Error occurred while processing ZaloPay payment:', error);
+            Alert.alert('Lỗi', 'Không thể thực hiện thanh toán ZaloPay');
         }
     };
 
@@ -133,8 +143,9 @@ const BillVnpay = ({ route }) => {
     const togglePaymentMethod = (method) => {
         if (method === 'card') {
             handleCardPaymentSelection();
+        } else {
+            setPaymentMethod(method);
         }
-        setPaymentMethod(method);
     };
 
     return (
@@ -166,14 +177,14 @@ const BillVnpay = ({ route }) => {
                 </View>
                 <View style={styles.checkboxContainer}>
                     <TouchableOpacity onPress={() => togglePaymentMethod('card')}>
-                        <Icon name={paymentMethod === 'card' ? "check-square-o" : "square-o"} size={24} color="black" />
+                        <Icon name={paymentMethod === 'online' ? "check-square-o" : "square-o"} size={24} color="black" />
                     </TouchableOpacity>
-                    <Text style={styles.label}>Thanh toán bằng thẻ</Text>
+                    <Text style={styles.label}>Thanh toán online</Text>
                 </View>
             </View>
 
             <View style={styles.footer}>
-                <TouchableOpacity onPress={handleSaveBooking} style={styles.paymentButton}>
+                <TouchableOpacity onPress={() => handleSaveBooking(paymentMethod === 'online')} style={styles.paymentButton}>
                     <Text style={styles.buttonText}>{paymentMethod === 'cod' ? 'Thanh toán' : 'Tiếp tục'}</Text>
                 </TouchableOpacity>
             </View>
@@ -275,11 +286,10 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 50,
         backgroundColor: '#ffa500',
-        borderRadius: 10,
         justifyContent: 'center',
         alignItems: 'center',
+        borderRadius: 10,
     },
 });
 
 export default Bill;
-
