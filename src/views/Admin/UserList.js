@@ -3,7 +3,7 @@ import { View, Text, Image, FlatList, StyleSheet, ActivityIndicator, TouchableOp
 import firestore from '@react-native-firebase/firestore';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-const UserList = ({ navigation }) => { // Pass navigation as a prop
+const UserList = ({ navigation }) => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -31,7 +31,6 @@ const UserList = ({ navigation }) => { // Pass navigation as a prop
         return () => unsubscribe();
     }, []);
 
-
     if (loading) {
         return <ActivityIndicator size="large" color="#0000ff" />;
     }
@@ -54,7 +53,9 @@ const UserList = ({ navigation }) => { // Pass navigation as a prop
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <Icon name="arrow-left" size={24} color="black" />
                 </TouchableOpacity>
-                <Text style={styles.title}>Danh sách tài khoản</Text>
+                <View style={{ flex: 1, alignItems: 'center' }}>
+                    <Text style={styles.title}>Danh sách tài khoản</Text>
+                </View>
             </View>
             <FlatList
                 data={users}
