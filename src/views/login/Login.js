@@ -13,11 +13,12 @@ import {
     Image
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function Login({ navigation }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false); // Biến state để theo dõi trạng thái hiển thị của mật khẩu
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const isValidEmail = (email) => {
@@ -65,6 +66,7 @@ export default function Login({ navigation }) {
     const handleRegister = () => {
         navigation.navigate('Register');
     };
+
     const handleForgetPassWord = () => {
         navigation.navigate('ForgetPassWord');
     };
@@ -83,9 +85,10 @@ export default function Login({ navigation }) {
                         <Image
                             resizeMode="contain"
                             style={styles.headerImg}
-                            source={require('../../image/LOGO.png')} />
+                            source={require('../../image/LOGO.png')}
+                        />
                         <Text style={styles.title}>
-                            <Text style={{ color: '#FFC0CB', fontSize: 50 }}>Đăng Nhập</Text>
+                            <Text style={{ color: 'black', fontSize: 50 }}>Đăng Nhập</Text>
                         </Text>
                     </View>
 
@@ -101,7 +104,8 @@ export default function Login({ navigation }) {
                                 placeholder="john@example.com"
                                 placeholderTextColor="#6b7280"
                                 style={styles.inputControl}
-                                value={email} />
+                                value={email}
+                            />
                         </View>
 
                         <View style={styles.input}>
@@ -118,7 +122,11 @@ export default function Login({ navigation }) {
                                     value={password}
                                 />
                                 <TouchableOpacity onPress={toggleShowPassword} style={styles.passwordToggle}>
-                                    <Text style={styles.eyeIcon}>{showPassword ? '👁️' : '👁️'}</Text>
+                                    <MaterialCommunityIcons
+                                        name={showPassword ? 'eye-off' : 'eye'}
+                                        size={22}
+                                        color="#6b7280"
+                                    />
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -133,11 +141,8 @@ export default function Login({ navigation }) {
                             </View>
                         </TouchableOpacity>
 
-                        <TouchableOpacity
-                            onPress={handleForgetPassWord}
-                            style={{ marginTop: 'auto' }}>
+                        <TouchableOpacity onPress={handleForgetPassWord} style={{ marginTop: 'auto' }}>
                             <Text style={styles.formFooter}>
-
                                 <Text style={{ textDecorationLine: 'underline' }}>Quên mật khẩu</Text>
                             </Text>
                         </TouchableOpacity>
@@ -145,9 +150,7 @@ export default function Login({ navigation }) {
                 </View>
             </KeyboardAwareScrollView>
 
-            <TouchableOpacity
-                onPress={handleRegister}
-                style={{ marginTop: 'auto' }}>
+            <TouchableOpacity onPress={handleRegister} style={{ marginTop: 'auto' }}>
                 <Text style={styles.formFooter}>
                     Không có tài khoản?{' '}
                     <Text style={{ textDecorationLine: 'underline' }}>Đăng kí</Text>
@@ -179,7 +182,6 @@ const styles = StyleSheet.create({
         width: 500,
         height: 200,
         alignSelf: 'center',
-
     },
     form: {
         marginBottom: 24,
@@ -231,10 +233,6 @@ const styles = StyleSheet.create({
         right: 12,
         top: 12,
     },
-    eyeIcon: {
-        fontSize: 22,
-        color: '#6b7280',
-    },
     btn: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -252,4 +250,3 @@ const styles = StyleSheet.create({
         color: '#fff',
     },
 });
-
