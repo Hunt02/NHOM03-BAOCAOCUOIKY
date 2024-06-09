@@ -3,13 +3,17 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, Image } from
 import { useNavigation } from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+import PaymentWebView from './PaymentWebView';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { createStackNavigator } from '@react-navigation/stack';
+import Details from './Details'
 
-const Cart = () => {
+const CartScreen = () => {
     const navigation = useNavigation();
     const [bookings, setBookings] = useState([]);
     const [selectedItems, setSelectedItems] = useState({});
     const [creatorName, setCreatorName] = useState('');
+    const [bookingSaved, setBookingSaved] = useState(false);
 
     useEffect(() => {
         const unsubscribe = firestore().collection('cart').onSnapshot(querySnapshot => {
@@ -33,49 +37,11 @@ const Cart = () => {
         fetchUserData();
     }, []);
 
-    const deleteBooking = async (id) => {
-        try {
-            await firestore().collection('cart').doc(id).delete();
-            Alert.alert('Thông báo', 'Xoá thành công khỏi giỏ hàng');
-        } catch (error) {
-
-            Alert.alert('Error', 'Failed to delete booking');
-        }
-    };
-
-    const deleteSelectedBookings = async () => {
-        try {
-            const selectedIds = Object.keys(selectedItems).filter(key => selectedItems[key]);
-            if (selectedIds.length === 0) {
-                Alert.alert('Thông báo', 'Vui lòng chọn ít nhất một sản phẩm để xoá');
-                return;
-            }
-            await Promise.all(selectedIds.map(id => firestore().collection('cart').doc(id).delete()));
-            setSelectedItems({});
-            Alert.alert('Thông báo', 'Xoá thành công khỏi giỏ hàng');
-        } catch (error) {
-
-            Alert.alert('Error', 'Failed to delete bookings');
-        }
-    };
-
-    const handlePayment = async () => {
+    const handleSaveBooking = async (selectedBooking, method) => {
         try {
             const currentUser = auth().currentUser;
-            if (!currentUser) {
-                Alert.alert('Lỗi', 'Người dùng chưa đăng nhập');
-                return;
-            }
-
-            const { uid, displayName } = currentUser;
-            const selectedIds = Object.keys(selectedItems).filter(key => selectedItems[key]);
-            if (selectedIds.length === 0) {
-                Alert.alert('Thông báo', 'Vui lòng chọn ít nhất một sản phẩm để thanh toán');
-                return;
-            }
-
-            await Promise.all(selectedIds.map(async id => {
-                const selectedBooking = bookings.find(booking => booking.id === id);
+            if (currentUser) {
+                const { uid, displayName } = currentUser;
                 const { quantity, price, serviceName, imageUrl } = selectedBooking;
                 const totalPrice = price * quantity;
 
@@ -88,17 +54,130 @@ const Cart = () => {
                     quantity,
                     totalPrice,
                     creatorName,
+                    paymentMethod: method,
                 });
 
-                await firestore().collection('cart').doc(id).delete();
-            }));
+                setBookingSaved(true);
+
+                if (method === 'cod') {
+                    Alert.alert('Thông báo', 'Đặt hàng thành công');
+                    navigation.navigate('Trang chủ'); // Change this to the appropriate screen name
+                }
+            } else {
+                Alert.alert('Lỗi', 'Người dùng chưa đăng nhập');
+            }
+        } catch (error) {
+            Alert.alert('Lỗi', 'Không thể lưu đặt hàng');
+        }
+    };
+
+    const deleteBooking = async (id) => {
+        try {
+            await firestore().collection('cart').doc(id).delete();
+            Alert.alert('Thông báo', 'Xoá thành công khỏi giỏ hàng');
+        } catch (error) {
+            Alert.alert('Error', 'Failed to delete booking');
+        }
+    };
+
+    const handleZaloPayPayment = async () => {
+        try {
+            const totalPrice = calculateTotalPrice();
+            const paymentUrl = await createPaymentUrl(totalPrice);
+            if (paymentUrl) {
+                const selectedIds = Object.keys(selectedItems).filter(key => selectedItems[key]);
+                for (const id of selectedIds) {
+                    const selectedBooking = bookings.find(booking => booking.id === id);
+                    if (selectedBooking) {
+                        await handleSaveBooking(selectedBooking, 'online');
+                    }
+                }
+
+                // Clear cart after successful ZaloPay payment
+                await clearCart();
+
+                navigation.navigate('PaymentWebView', { url: paymentUrl });
+            }
+        } catch (error) {
+            console.error('Error occurred while processing ZaloPay payment:', error);
+            Alert.alert('Lỗi', 'Không thể thực hiện thanh toán ZaloPay');
+        }
+    };
+
+    const handlePayment = () => {
+        const selectedIds = Object.keys(selectedItems).filter(key => selectedItems[key]);
+        if (selectedIds.length === 0) {
+            Alert.alert('Thông báo', 'Vui lòng chọn ít nhất một sản phẩm để thanh toán');
+            return;
+        }
+
+        Alert.alert(
+            'Chọn phương thức thanh toán',
+            'Vui lòng chọn phương thức thanh toán',
+            [
+                { text: 'ZaloPay', onPress: handleZaloPayPayment },
+                { text: 'Thanh toán khi nhận hàng', onPress: () => processPayment('cod') },
+            ],
+            { cancelable: true }
+        );
+    };
+
+    const processPayment = async (method) => {
+        try {
+            const currentUser = auth().currentUser;
+            if (!currentUser) {
+                Alert.alert('Lỗi', 'Người dùng chưa đăng nhập');
+                return;
+            }
+
+            const selectedIds = Object.keys(selectedItems).filter(key => selectedItems[key]);
+            for (const id of selectedIds) {
+                const selectedBooking = bookings.find(booking => booking.id === id);
+                if (selectedBooking) {
+                    await handleSaveBooking(selectedBooking, method);
+                    await firestore().collection('cart').doc(id).delete();
+                }
+            }
 
             setSelectedItems({});
             Alert.alert('Thông báo', 'Đặt hàng thành công!');
             navigation.navigate('Trang chủ');
         } catch (error) {
-
             Alert.alert('Lỗi', 'Thanh toán thất bại');
+        }
+    };
+
+    const createPaymentUrl = async (totalPrice) => {
+        const apiUrl = 'http://172.20.10.6:3000/payment';
+        const requestData = { amount: totalPrice };
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestData),
+            });
+
+            if (!response.ok) throw new Error('Failed to create payment URL');
+
+            const responseData = await response.json();
+            return responseData.order_url;
+        } catch (error) {
+            console.error('Error occurred while creating payment URL:', error);
+            Alert.alert('Lỗi', 'Không thể tạo URL thanh toán');
+        }
+    };
+
+    const clearCart = async () => {
+        try {
+            const selectedIds = Object.keys(selectedItems).filter(key => selectedItems[key]);
+            for (const id of selectedIds) {
+                await firestore().collection('cart').doc(id).delete();
+            }
+            setSelectedItems({});
+        } catch (error) {
+            console.error('Error occurred while clearing cart:', error);
+            Alert.alert('Lỗi', 'Không thể xóa giỏ hàng');
         }
     };
 
@@ -122,6 +201,26 @@ const Cart = () => {
         return priceNumber.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + ' VND';
     };
 
+    const renderItem = ({ item }) => (
+        <View style={styles.card}>
+            <View style={styles.cardContent}>
+                <TouchableOpacity onPress={() => toggleCheckbox(item.id)} style={styles.checkboxContainer}>
+                    <Icon name={selectedItems[item.id] ? "check-square-o" : "square-o"} size={24} color="black" />
+                </TouchableOpacity>
+                <Image source={{ uri: item.imageUrl }} style={styles.image} />
+                <View style={styles.textContainer}>
+                    <Text style={styles.bookingText}>Tên sản phẩm: {item.serviceName}</Text>
+                    <Text style={styles.bookingText}>Giá: {formatPrice(item.price)}</Text>
+                    <Text style={styles.bookingText}>Kích thước: {item.size}</Text>
+                    <Text style={styles.bookingText}>Số lượng: {item.quantity}</Text>
+                </View>
+                <TouchableOpacity onPress={() => deleteBooking(item.id)} style={styles.deleteButton}>
+                    <Icon name="trash" size={30} color="white" />
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
+
     return (
         <View style={styles.container}>
             <View style={styles.imageContainer}>
@@ -135,37 +234,31 @@ const Cart = () => {
                     style={styles.list}
                     data={bookings}
                     keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => (
-                        <View style={styles.card}>
-                            <View style={styles.cardContent}>
-                                <View style={styles.checkboxContainer}>
-                                    <TouchableOpacity onPress={() => toggleCheckbox(item.id)}>
-                                        <Icon name={selectedItems[item.id] ? "check-square-o" : "square-o"} size={24} color="black" />
-                                    </TouchableOpacity>
-                                </View>
-                                <Image source={{ uri: item.imageUrl }} style={styles.image} />
-                                <View style={styles.textContainer}>
-                                    <Text style={styles.bookingText}>Tên sản phẩm: {item.serviceName}</Text>
-                                    <Text style={styles.bookingText}>Giá: {formatPrice(item.price)}</Text>
-                                    <Text style={styles.bookingText}>Kích thước: {item.size}</Text>
-                                    <Text style={styles.bookingText}>Số lượng: {item.quantity}</Text>
-                                </View>
-                                <TouchableOpacity onPress={() => deleteBooking(item.id)} style={styles.deleteButton}>
-                                    <Icon name="trash" size={30} color="white" />
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    )}
+                    renderItem={renderItem}
                 />
             </View>
             <View style={styles.footer}>
                 <Text style={styles.totalPriceText}>Tổng số tiền: {formatPrice(calculateTotalPrice())}</Text>
                 <TouchableOpacity style={styles.footerButton} onPress={handlePayment}>
                     <Icon name="money" size={20} color="white" />
-                    <Text style={styles.buttonText}>Đặt hàng</Text>
+                    <Text style={styles.buttonText}>Thanh toán</Text>
                 </TouchableOpacity>
             </View>
         </View>
+    );
+};
+
+const Stack = createStackNavigator();
+
+const Cart = ({ route }) => {
+    return (
+        <Stack.Navigator
+            initialRouteName="Cart"
+            screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Cart" component={CartScreen} initialParams={route.params} />
+            <Stack.Screen name="PaymentWebView" component={PaymentWebView} />
+
+        </Stack.Navigator>
     );
 };
 
@@ -275,3 +368,4 @@ const styles = StyleSheet.create({
 });
 
 export default Cart;
+
