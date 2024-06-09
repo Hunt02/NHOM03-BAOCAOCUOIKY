@@ -23,10 +23,10 @@ const ForgetPassWord = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
+            <Text style={styles.title}>Quên mật khẩu</Text>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconContainer}>
                 <Icon name="arrow-left" size={25} color="black" />
             </TouchableOpacity>
-            <Text style={styles.title}>Quên mật khẩu</Text>
             <TextInput
                 style={styles.input}
                 placeholder="Nhập email của bạn"
@@ -49,6 +49,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 20,
         backgroundColor: 'white',
+
     },
     iconContainer: {
         position: 'absolute',
@@ -91,8 +92,10 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 31,
         fontWeight: '700',
-        color: '#FFC0CB',
+        color: 'black',
         marginBottom: 6,
+        marginTop: -400,
+        alignItems: 'center',
     },
 });
 
