@@ -5,6 +5,7 @@ import auth from '@react-native-firebase/auth';
 import storage from '@react-native-firebase/storage';
 import { launchImageLibrary } from 'react-native-image-picker'; // Import image picker
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import Ionicons from 'react-native-vector-icons/Ionicons'; // Import Ionicons
 
 export default function Register({ navigation }) {
     const [email, setEmail] = useState('');
@@ -112,7 +113,7 @@ export default function Register({ navigation }) {
                             style={styles.headerImg}
                             source={require('../../image/LOGO.png')} />
                         <Text style={styles.title}>
-                            <Text style={{ color: '#FFC0CB', fontSize: 50 }}>Đăng Ký</Text>
+                            <Text style={{ color: 'black', fontSize: 50 }}>Đăng Ký</Text>
                         </Text>
                     </View>
                     <View style={styles.form}>
@@ -131,33 +132,39 @@ export default function Register({ navigation }) {
                         </View>
                         <View style={styles.input}>
                             <Text style={styles.inputLabel}>Mật khẩu</Text>
-                            <TextInput
-                                autoCorrect={false}
-                                clearButtonMode="while-editing"
-                                onChangeText={setPassword}
-                                placeholder="********"
-                                placeholderTextColor="#6b7280"
-                                style={styles.inputControl}
-                                secureTextEntry={!showPassword}
-                                value={password} />
-                            <TouchableOpacity onPress={toggleShowPassword} style={styles.passwordToggle}>
-                                <Text style={styles.eyeIcon}>{showPassword ? '👁️' : '👁️'}</Text>
-                            </TouchableOpacity>
+                            <View style={styles.passwordContainer}>
+                                <TextInput
+                                    autoCorrect={false}
+                                    clearButtonMode="while-editing"
+                                    onChangeText={setPassword}
+                                    placeholder="********"
+                                    placeholderTextColor="#6b7280"
+                                    style={styles.inputControl}
+                                    secureTextEntry={!showPassword}
+                                    value={password}
+                                />
+                                <TouchableOpacity onPress={toggleShowPassword} style={styles.passwordToggle}>
+                                    <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={22} color="#6b7280" />
+                                </TouchableOpacity>
+                            </View>
                         </View>
                         <View style={styles.input}>
                             <Text style={styles.inputLabel}>Điền lại mật khẩu</Text>
-                            <TextInput
-                                autoCorrect={false}
-                                clearButtonMode="while-editing"
-                                onChangeText={setRepassword}
-                                placeholder="********"
-                                placeholderTextColor="#6b7280"
-                                style={styles.inputControl}
-                                secureTextEntry={!showResetPassword}
-                                value={repassword} />
-                            <TouchableOpacity onPress={toggleResetShowPassword} style={styles.passwordToggle}>
-                                <Text style={styles.eyeIcon}>{showResetPassword ? '👁️' : '👁️'}</Text>
-                            </TouchableOpacity>
+                            <View style={styles.passwordContainer}>
+                                <TextInput
+                                    autoCorrect={false}
+                                    clearButtonMode="while-editing"
+                                    onChangeText={setRepassword}
+                                    placeholder="********"
+                                    placeholderTextColor="#6b7280"
+                                    style={styles.inputControl}
+                                    secureTextEntry={!showResetPassword}
+                                    value={repassword}
+                                />
+                                <TouchableOpacity onPress={toggleResetShowPassword} style={styles.passwordToggle}>
+                                    <Ionicons name={showResetPassword ? 'eye-off' : 'eye'} size={22} color="#6b7280" />
+                                </TouchableOpacity>
+                            </View>
                         </View>
                         <View style={styles.input}>
                             <Text style={styles.inputLabel}>Họ và tên</Text>
@@ -185,7 +192,6 @@ export default function Register({ navigation }) {
                                 value={phoneNumber} />
                         </View>
                         <View style={styles.input}>
-
                             <TouchableOpacity onPress={selectAvatar} style={styles.avatarButton}>
                                 <Text style={styles.avatarButtonText}>Chọn ảnh</Text>
                             </TouchableOpacity>
@@ -203,7 +209,7 @@ export default function Register({ navigation }) {
                             </View>
                         </TouchableOpacity>
                         <TouchableOpacity onPress={() => navigation.goBack()} disabled={loading}>
-                            <Text style={{ color: 'black', textAlign: 'center', marginTop: 5, fontSize: 20 }}>Quay lại</Text>
+                            <Text style={{ color: 'black', textAlign: 'center', marginTop: 5, fontSize: 16 }}>Quay lại</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -256,9 +262,6 @@ const styles = StyleSheet.create({
     },
     input: {
         marginBottom: 16,
-    },
-    inputimage: {
-        marginBottom: 16,
         backgroundColor: 'white',
     },
     inputLabel: {
@@ -280,8 +283,40 @@ const styles = StyleSheet.create({
         borderStyle: 'solid',
         flex: 1,
     },
-    btn: {
+    passwordContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        position: 'relative',
+    },
+    passwordToggle: {
+        position: 'absolute',
+        right: 12,
+        top: 12,
+    },
+    avatarButton: {
+        height: 50,
+        backgroundColor: '#ddd',
+        paddingHorizontal: 16,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'white',
+    },
+    avatarButtonText: {
+        fontSize: 15,
+        fontWeight: '500',
+        color: '#222',
+    },
+    avatarPreview: {
         marginTop: 10,
+        width: 200,
+        height: 200,
+        borderRadius: 50,
+        justifyContent: 'center',
+        alignSelf: 'center',
+    },
+
+    btn: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -296,38 +331,5 @@ const styles = StyleSheet.create({
         lineHeight: 26,
         fontWeight: '600',
         color: '#fff',
-    },
-    passwordContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        position: 'relative',
-    },
-    passwordToggle: {
-        position: 'absolute',
-        right: 12,
-        top: 12,
-        marginTop: 30
-    },
-    eyeIcon: {
-        fontSize: 22,
-        color: '#6b7280',
-    },
-    avatarButton: {
-        backgroundColor: 'white',
-        padding: 10,
-        borderRadius: 5,
-        alignItems: 'center',
-    },
-    avatarButtonText: {
-        color: 'black',
-        fontWeight: '600',
-        backgroundColor: 'white',
-    },
-    avatarPreview: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        marginTop: 10,
-        alignSelf: 'center',
     },
 });
