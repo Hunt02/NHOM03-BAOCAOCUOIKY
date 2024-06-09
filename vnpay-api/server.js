@@ -1,72 +1,130 @@
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const crypto = require('crypto');
+const axios = require('axios').default; // npm install axios
+const CryptoJS = require('crypto-js'); // npm install crypto-js
+const express = require('express'); // npm install express
+const bodyParser = require('body-parser'); // npm install body-parser
+const moment = require('moment'); // npm install moment
 const qs = require('qs');
 
 const app = express();
-const port = process.env.PORT || 3000;
-const ipAddress = '172.20.10.6'; // Update this to your server's IP address
 
-app.use(cors());
+// APP INFO, STK TEST: 4111 1111 1111 1111
+const config = {
+    app_id: '2553',
+    key1: 'PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL',
+    key2: 'kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz',
+    endpoint: 'https://sb-openapi.zalopay.vn/v2/create',
+};
+
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 
-const vnp_TmnCode = 'NDBFQGG9'; // Your VNPay TMN code
-const vnp_HashSecret = '54C0HBW5OEJK6FL5VN8DIS68G569PKU1'; // Your VNPay hash secret
-const vnp_Url = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'; // VNPay API URL
-const vnp_ReturnUrl = `http://${ipAddress}:${port}/vnpay_return`; // Your return URL
-
-app.post('/create-payment', (req, res) => {
+app.post('/payment', async (req, res) => {
     const { amount } = req.body;
-    const ipAddr = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const embed_data = {
+        redirecturl: 'https://phongthuytaman.com',
+    };
 
-    const tmnCode = vnp_TmnCode;
-    const secretKey = vnp_HashSecret;
-    const vnpUrl = vnp_Url;
-    const returnUrl = vnp_ReturnUrl;
+    const items = [];
+    const transID = Math.floor(Math.random() * 1000000);
 
-    const date = new Date();
-    const createDate = date.toISOString().replace(/[^0-9]/g, '').slice(0, 14);
-    const orderId = createDate + Math.floor(Math.random() * 1000000);
+    const order = {
+        app_id: config.app_id,
+        app_trans_id: `${moment().format('YYMMDD')}_${transID}`,
+        app_user: 'user123',
+        app_time: Date.now(),
+        item: JSON.stringify(items),
+        embed_data: JSON.stringify(embed_data),
+        amount: amount,
+        callback_url: 'http://172.20.10.6:3000/callback',
+        description: `Payment for the order #${transID}`,
+        bank_code: '',
+    };
 
-    let vnp_Params = {};
-    vnp_Params['vnp_Version'] = '2.1.0';
-    vnp_Params['vnp_Command'] = 'pay';
-    vnp_Params['vnp_TmnCode'] = tmnCode;
-    vnp_Params['vnp_Locale'] = 'vn';
-    vnp_Params['vnp_CurrCode'] = 'VND';
-    vnp_Params['vnp_TxnRef'] = orderId;
-    vnp_Params['vnp_OrderInfo'] = 'Thanh toan cho ma GD:' + orderId;
-    vnp_Params['vnp_OrderType'] = 'other';
-    vnp_Params['vnp_Amount'] = amount * 100; // VNPay requires amount in VND, so multiply by 100
-    vnp_Params['vnp_ReturnUrl'] = returnUrl;
-    vnp_Params['vnp_IpAddr'] = ipAddr;
-    vnp_Params['vnp_CreateDate'] = createDate;
+    const data =
+        config.app_id +
+        '|' +
+        order.app_trans_id +
+        '|' +
+        order.app_user +
+        '|' +
+        order.amount +
+        '|' +
+        order.app_time +
+        '|' +
+        order.embed_data +
+        '|' +
+        order.item;
+    order.mac = CryptoJS.HmacSHA256(data, config.key1).toString();
 
-    vnp_Params = sortObject(vnp_Params);
+    try {
+        const result = await axios.post(config.endpoint, null, { params: order });
 
-    const signData = qs.stringify(vnp_Params, { encode: false });
-    const hmac = crypto.createHmac('sha512', secretKey);
-    const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
-    vnp_Params['vnp_SecureHash'] = signed;
-
-    const paymentUrl = vnpUrl + '?' + qs.stringify(vnp_Params, { encode: false });
-    res.json({ paymentUrl });
+        return res.status(200).json(result.data);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ error: 'Error creating payment' });
+    }
 });
 
-function sortObject(obj) {
-    const sorted = {};
-    Object.keys(obj)
-        .sort()
-        .forEach((key) => {
-            if (key !== 'vnp_SecureHash' && key !== 'vnp_SecureHashType') {
-                sorted[key] = obj[key];
-            }
-        });
-    return sorted;
-}
+app.post('/callback', (req, res) => {
+    let result = {};
+    try {
+        let dataStr = req.body.data;
+        let reqMac = req.body.mac;
 
-app.listen(port, ipAddress, () => {
-    console.log(`VNPay API server is running on http://${ipAddress}:${port}`);
+        let mac = CryptoJS.HmacSHA256(dataStr, config.key2).toString();
+        console.log('mac =', mac);
+
+        if (reqMac !== mac) {
+            result.return_code = -1;
+            result.return_message = 'mac not equal';
+        } else {
+            let dataJson = JSON.parse(dataStr);
+            console.log(
+                "update order's status = success where app_trans_id =",
+                dataJson['app_trans_id'],
+            );
+
+            result.return_code = 1;
+            result.return_message = 'success';
+        }
+    } catch (ex) {
+        console.log('error:', ex.message);
+        result.return_code = 0;
+        result.return_message = ex.message;
+    }
+
+    res.json(result);
+});
+
+app.post('/check-status-order', async (req, res) => {
+    const { app_trans_id } = req.body;
+
+    let postData = {
+        app_id: config.app_id,
+        app_trans_id,
+    };
+
+    let data = postData.app_id + '|' + postData.app_trans_id + '|' + config.key1;
+    postData.mac = CryptoJS.HmacSHA256(data, config.key1).toString();
+
+    let postConfig = {
+        method: 'post',
+        url: 'https://sb-openapi.zalopay.vn/v2/query',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        data: qs.stringify(postData),
+    };
+
+    try {
+        const result = await axios(postConfig);
+        return res.status(200).json(result.data);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ error: 'Error checking order status' });
+    }
+});
+
+app.listen(3000, '172.20.10.6', function () {
+    console.log('Server is listening at http://172.20.10.6:3000');
 });
