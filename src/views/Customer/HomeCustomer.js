@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
         borderRadius: 30,
         margin: 10,
         paddingLeft: 10,
-        width: 330,
+        width: 370,
         flexDirection: 'row'
     },
     cartButton: {
